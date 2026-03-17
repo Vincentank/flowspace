@@ -194,6 +194,8 @@ function renderHome() {
         `).join('')}
       </div>
     </div>
+
+    ${renderTodayEventsWidget()}
   `;
 }
 
@@ -214,7 +216,7 @@ const pages = {
   matrix:   { title: 'Priority Matrix', render: renderMatrix },
   focus:    { title: 'Focus',           render: renderFocus },
   journal:  { title: 'Journal',         render: renderJournal },
-  calendar: { title: 'Calendar',        render: () => renderPlaceholder('Calendar', '▦') },
+  calendar: { title: 'Calendar',        render: renderCalendar },
   shared:   { title: 'Shared',          render: () => renderPlaceholder('Shared Space', '◈') },
 };
 
@@ -295,4 +297,5 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   renderPage('home');
+  initGoogle();
 });

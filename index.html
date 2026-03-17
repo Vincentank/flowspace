@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FlowSpace</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-shell">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-inner">
+        <div class="logo-wrap">
+          <div class="logo-icon">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <circle cx="8" cy="8" r="3" fill="white"/>
+              <circle cx="3" cy="4" r="1.5" fill="white" opacity="0.6"/>
+              <circle cx="13" cy="4" r="1.5" fill="white" opacity="0.6"/>
+              <circle cx="3" cy="12" r="1.5" fill="white" opacity="0.4"/>
+              <circle cx="13" cy="12" r="1.5" fill="white" opacity="0.4"/>
+            </svg>
+          </div>
+          <span class="logo-text">FlowSpace</span>
+          <button class="collapse-btn" id="collapse-btn" onclick="toggleSidebar()">
+            <svg id="collapse-icon" width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path d="M7 2L3 6L7 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+
+        <nav class="nav">
+          <div class="nav-section">
+            <span class="nav-label">Workspace</span>
+            <button class="nav-item active" data-page="home">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 6.5L8 2L14 6.5V14H10V10H6V14H2V6.5Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
+              <span>Home</span>
+            </button>
+            <button class="nav-item" data-page="tasks">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="2" rx="1" fill="currentColor" opacity="0.4"/><rect x="2" y="7" width="8" height="2" rx="1" fill="currentColor" opacity="0.4"/><rect x="2" y="11" width="10" height="2" rx="1" fill="currentColor" opacity="0.4"/></svg>
+              <span>Tasks</span>
+            </button>
+            <button class="nav-item" data-page="matrix">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.2"/><rect x="9" y="2" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.2"/><rect x="2" y="9" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.2"/><rect x="9" y="9" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.2"/></svg>
+              <span>Matrix</span>
+            </button>
+            <button class="nav-item" data-page="focus">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.2"/><path d="M8 5V8.5L10 10" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+              <span>Focus</span>
+            </button>
+          </div>
+
+          <div class="nav-section">
+            <span class="nav-label">Personal</span>
+            <button class="nav-item" data-page="journal">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="3" y="2" width="10" height="12" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M6 6H10M6 9H9" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg>
+              <span>Journal</span>
+            </button>
+            <button class="nav-item" data-page="calendar">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="11" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M2 7H14M5 2V4M11 2V4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+              <span>Calendar</span>
+            </button>
+          </div>
+
+          <div class="nav-section">
+            <span class="nav-label">Social</span>
+            <button class="nav-item" data-page="shared">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="6" cy="6" r="2.5" stroke="currentColor" stroke-width="1.2"/><circle cx="11" cy="5" r="2" stroke="currentColor" stroke-width="1.2"/><path d="M1 13C1 11 3.2 9.5 6 9.5C8.8 9.5 11 11 11 13" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><path d="M11 9C12.5 9 14 10 14 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+              <span>Shared</span>
+            </button>
+          </div>
+        </nav>
+
+        <div class="sidebar-footer">
+          <div class="user-row">
+            <div class="avatar av-you">YO</div>
+            <span class="user-name">You</span>
+            <span class="online-dot"></span>
+          </div>
+          <div class="user-row">
+            <div class="avatar av-buddy">BU</div>
+            <span class="user-name">Buddy</span>
+            <span class="online-dot"></span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <div class="main">
+      <header class="topbar">
+        <span class="topbar-title" id="topbar-title">Good morning</span>
+        <span class="topbar-date" id="topbar-date"></span>
+        <button class="btn" id="add-task-btn">+ Add task</button>
+        <button class="btn btn-primary" id="focus-btn">Focus</button>
+      </header>
+
+      <main class="content" id="page-content"></main>
+    </div>
+  </div>
+
+  <!-- ADD TASK MODAL -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <span class="modal-title">New task</span>
+        <button class="modal-close" id="modal-close">&times;</button>
+      </div>
+      <input class="modal-input" id="task-input" type="text" placeholder="Task name..." />
+      <div class="modal-row">
+        <select class="modal-select" id="task-quad">
+          <option value="q1">Urgent & Important</option>
+          <option value="q2">Important</option>
+          <option value="q3">Urgent</option>
+          <option value="q4">Later</option>
+        </select>
+        <input class="modal-input" id="task-due" type="text" placeholder="Due (e.g. Today)" style="flex:1"/>
+      </div>
+      <button class="btn btn-primary" id="save-task-btn" style="width:100%;justify-content:center;">Save task</button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

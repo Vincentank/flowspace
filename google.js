@@ -163,58 +163,6 @@ function fmtEventTime(isoStr) {
   return new Date(isoStr).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
 }
 
-// ─── GOOGLE PHOTOS PICKER API ─────────────────────────────────────────────────
-// Google Picker needs an API key (different from OAuth client ID)
-// Get it from: console.cloud.google.com → APIs & Services → Credentials → Create API Key
-const GOOGLE_API_KEY = 'AIzaSyCgyejJRpV2LMy_NlN-_A1AkOZrR-yl8rw';
-
-function loadPickerAPI() {
-  return new Promise((resolve) => {
-    if (window.google?.picker) { resolve(); return; }
-    const script = document.createElement('script');
-    script.src = 'https://apis.google.com/js/api.js';
-    script.onload = () => gapi.load('picker', resolve);
-    document.head.appendChild(script);
-  });
-}
-
-async function openGooglePhotosPicker(dateStr) {
-  if (!isGoogleConnected()) { alert('Please connect Google first.'); return; }
-  if (GOOGLE_API_KEY === 'YOUR_API_KEY_HERE') {
-    alert('Please add your Google API Key to google.js.');
-    return;
-  }
-  await loadPickerAPI();
-
-  const picker = new google.picker.PickerBuilder()
-    .addView(new google.picker.DocsView(google.picker.ViewId.PHOTOS)
-      .setIncludeFolders(false))
-    .addView(new google.picker.DocsView(google.picker.ViewId.PHOTO_ALBUMS))
-    .setOAuthToken(googleState.accessToken)
-    .setDeveloperKey(GOOGLE_API_KEY)
-    .setCallback((data) => handlePickerCallback(data, dateStr))
-    .setTitle('Select photos for this day')
-    .setOrigin(window.location.protocol + '//' + window.location.host)
-    .build();
-  picker.setVisible(true);
-}
-
-function handlePickerCallback(data, dateStr) {
-  if (data.action !== google.picker.Action.PICKED) return;
-  const entry = getEntry(dateStr);
-  entry.photos = entry.photos || [];
-  data.docs.forEach(doc => {
-    const url   = doc.url        || '';
-    const thumb = doc.thumbnailUrl || url;
-    const name  = doc.name       || 'photo';
-    if (!entry.photos.find(p => p.id === doc.id)) {
-      entry.photos.push({ id: doc.id, url, thumb, filename: name, source: 'google' });
-    }
-  });
-  saveJournal();
-  renderPage('journal');
-  setTimeout(() => afterJournalEntryRender(dateStr), 50);
-}
 
 // ─── CALENDAR PAGE ────────────────────────────────────────────────────────────
 function renderCalendar() {
@@ -412,7 +360,6 @@ function renderJournalEvents(dateStr) {
 function renderJournalPhotos(dateStr) {
   const entry = getEntry(dateStr);
   const photos = entry.photos || [];
-  const googleConnected = isGoogleConnected();
   return `
     <div class="photo-grid" id="photo-grid-${dateStr}">
       ${photos.map((p, i) => `
@@ -421,42 +368,15 @@ function renderJournalPhotos(dateStr) {
           <button class="photo-remove" onclick="removePhoto('${dateStr}', ${i})">×</button>
         </div>
       `).join('')}
-
-      <!-- Manual upload from device -->
-      <label class="photo-add-btn" title="Upload from device">
-        <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+      <label class="photo-add-btn" title="Add photos from your device">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
           <path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
         </svg>
         <input type="file" accept="image/*" multiple style="display:none"
           onchange="handlePhotos('${dateStr}', this)"/>
       </label>
-
-      <!-- Google Photos Picker -->
-      ${googleConnected ? `
-        <button class="photo-add-btn photo-google-btn" title="Pick from Google Photos"
-          onclick="openGooglePhotosPicker('${dateStr}')">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
-            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-          </svg>
-        </button>
-      ` : `
-        <button class="photo-add-btn photo-google-btn" title="Connect Google to pick photos"
-          onclick="connectGoogle()" style="opacity:0.5">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
-            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-          </svg>
-        </button>
-      `}
     </div>
-    <p style="font-size:11px;color:var(--text-3);margin-top:8px">
-      + from device &nbsp;·&nbsp; G pick from Google Photos
-    </p>
+    ${photos.length === 0 ? `<p style="font-size:12px;color:var(--text-3);margin-top:8px">Tap + to add photos from your device</p>` : ''}
   `;
 }
 

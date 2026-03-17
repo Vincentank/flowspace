@@ -241,8 +241,11 @@ function setPage(name) {
 let collapsed = false;
 function toggleSidebar() {
   collapsed = !collapsed;
-  document.getElementById('sidebar').classList.toggle('collapsed', collapsed);
+  const sb  = document.getElementById('sidebar');
+  const btn = document.getElementById('collapse-btn');
   const icon = document.getElementById('collapse-icon');
+  sb.classList.toggle('collapsed', collapsed);
+  btn.style.left = collapsed ? '45px' : 'calc(var(--sidebar-w) - 11px)';
   icon.innerHTML = collapsed
     ? '<path d="M5 2L9 6L5 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>'
     : '<path d="M7 2L3 6L7 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>';

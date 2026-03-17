@@ -69,14 +69,19 @@ html, body { height: 100%; font-family: var(--font); background: var(--bg-3); co
 .sidebar.collapsed .logo-text { opacity: 0; pointer-events: none; }
 
 .collapse-btn {
-  position: absolute; right: -12px; top: 2px;
+  position: fixed;
+  left: calc(var(--sidebar-w) - 11px);
+  top: 14px;
   width: 22px; height: 22px; border-radius: 50%;
   background: var(--bg); border: 0.5px solid var(--border-2);
   display: flex; align-items: center; justify-content: center;
-  cursor: pointer; color: var(--text-3); z-index: 10;
-  transition: color 0.1s;
+  cursor: pointer; color: var(--text-3); z-index: 200;
+  transition: color 0.1s, left 0.2s ease;
 }
 .collapse-btn:hover { color: var(--text); }
+.sidebar.collapsed ~ * .collapse-btn,
+body.collapsed .collapse-btn { left: 45px; }
+
 
 /* NAV */
 .nav { flex: 1; padding: 0 8px; overflow: hidden; }
@@ -456,7 +461,7 @@ html, body { height: 100%; font-family: var(--font); background: var(--bg-3); co
   align-items: center; justify-content: center; gap: 4px;
 }
 .focus-time {
-  font-size: 36px; font-weight: 500; font-family: var(--font-mono);
+  font-size: 26px; font-weight: 500; font-family: var(--font-mono);
   color: var(--text); line-height: 1;
 }
 .focus-session-label { font-size: 12px; color: var(--text-3); }

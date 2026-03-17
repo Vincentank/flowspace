@@ -164,35 +164,37 @@ function fmtEventTime(isoStr) {
 }
 
 // ─── GOOGLE PHOTOS PICKER API ─────────────────────────────────────────────────
-// Stores picker-selected photos per journal entry date
-// pickerPhotos[dateStr] = [{ id, url, thumb, filename }, ...]
+// Google Picker needs an API key (different from OAuth client ID)
+// Get it from: console.cloud.google.com → APIs & Services → Credentials → Create API Key
+const GOOGLE_API_KEY = 'AIzaSyCgyejJRpV2LMy_NlN-_A1AkOZrR-yl8rw';
 
 function loadPickerAPI() {
   return new Promise((resolve) => {
     if (window.google?.picker) { resolve(); return; }
     const script = document.createElement('script');
     script.src = 'https://apis.google.com/js/api.js';
-    script.onload = () => {
-      gapi.load('picker', resolve);
-    };
+    script.onload = () => gapi.load('picker', resolve);
     document.head.appendChild(script);
   });
 }
 
 async function openGooglePhotosPicker(dateStr) {
-  if (!isGoogleConnected()) {
-    alert('Please connect Google first.');
+  if (!isGoogleConnected()) { alert('Please connect Google first.'); return; }
+  if (GOOGLE_API_KEY === 'YOUR_API_KEY_HERE') {
+    alert('Please add your Google API Key to google.js.');
     return;
   }
   await loadPickerAPI();
 
   const picker = new google.picker.PickerBuilder()
-    .addView(new google.picker.PhotosView()
-      .setType(google.picker.PhotosView.Type.PHOTO_ALBUMS))
-    .addView(google.picker.ViewId.PHOTOS)
+    .addView(new google.picker.DocsView(google.picker.ViewId.PHOTOS)
+      .setIncludeFolders(false))
+    .addView(new google.picker.DocsView(google.picker.ViewId.PHOTO_ALBUMS))
     .setOAuthToken(googleState.accessToken)
+    .setDeveloperKey(GOOGLE_API_KEY)
     .setCallback((data) => handlePickerCallback(data, dateStr))
     .setTitle('Select photos for this day')
+    .setOrigin(window.location.protocol + '//' + window.location.host)
     .build();
   picker.setVisible(true);
 }
@@ -201,18 +203,14 @@ function handlePickerCallback(data, dateStr) {
   if (data.action !== google.picker.Action.PICKED) return;
   const entry = getEntry(dateStr);
   entry.photos = entry.photos || [];
-
   data.docs.forEach(doc => {
-    // Picker returns a URL we can use directly
-    const url = doc.url || doc[google.picker.Document.URL];
+    const url   = doc.url        || '';
     const thumb = doc.thumbnailUrl || url;
-    const name = doc.name || doc[google.picker.Document.NAME] || 'photo';
-    // avoid duplicates
+    const name  = doc.name       || 'photo';
     if (!entry.photos.find(p => p.id === doc.id)) {
       entry.photos.push({ id: doc.id, url, thumb, filename: name, source: 'google' });
     }
   });
-
   saveJournal();
   renderPage('journal');
   setTimeout(() => afterJournalEntryRender(dateStr), 50);

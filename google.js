@@ -95,27 +95,29 @@ async function loadGoogleData() {
 }
 
 // ─── CALENDAR ─────────────────────────────────────────────────────────────────
-async function fetchCalendarEvents(daysAhead = 30) {
-  const now = new Date();
-  const future = new Date(now.getTime() + daysAhead * 86400000);
+async function fetchCalendarEvents() {
+  // fetch 3 months back and 6 months ahead for full calendar coverage
+  const now    = new Date();
+  const past   = new Date(now.getFullYear(), now.getMonth() - 3, 1);
+  const future = new Date(now.getFullYear(), now.getMonth() + 7, 0);
   const params = new URLSearchParams({
-    timeMin: now.toISOString(),
-    timeMax: future.toISOString(),
-    singleEvents: 'true',
-    orderBy: 'startTime',
-    maxResults: '100',
+    timeMin:        past.toISOString(),
+    timeMax:        future.toISOString(),
+    singleEvents:   'true',
+    orderBy:        'startTime',
+    maxResults:     '500',
   });
   const data = await gFetch(
     `https://www.googleapis.com/calendar/v3/calendars/primary/events?${params}`
   );
   googleState.calendarEvents = (data.items || []).map(e => ({
-    id: e.id,
-    title: e.summary || 'Untitled event',
-    start: e.start?.dateTime || e.start?.date,
-    end: e.end?.dateTime || e.end?.date,
-    allDay: !e.start?.dateTime,
-    color: e.colorId ? gcalColor(e.colorId) : '#1a1a1a',
-    location: e.location || '',
+    id:          e.id,
+    title:       e.summary || 'Untitled event',
+    start:       e.start?.dateTime || e.start?.date,
+    end:         e.end?.dateTime   || e.end?.date,
+    allDay:      !e.start?.dateTime,
+    color:       e.colorId ? gcalColor(e.colorId) : 'var(--accent)',
+    location:    e.location    || '',
     description: e.description || '',
   }));
   // filter today
@@ -200,12 +202,13 @@ function renderCalendar() {
       <div class="gcal-cell ${isToday ? 'gcal-today' : ''}">
         <span class="gcal-day-num ${isToday ? 'gcal-today-num' : ''}">${d}</span>
         ${dayEvents.slice(0, 3).map(e => `
-          <div class="gcal-event-pill" style="border-left:3px solid ${e.color}">
+          <div class="gcal-event-pill" style="border-left:3px solid ${e.color}"
+            onclick="showEventDetail(event, '${e.id}')">
             <span class="gcal-event-time">${fmtEventTime(e.start)}</span>
             <span class="gcal-event-title">${e.title}</span>
           </div>
         `).join('')}
-        ${dayEvents.length > 3 ? `<div class="gcal-more">+${dayEvents.length-3}</div>` : ''}
+        ${dayEvents.length > 3 ? `<div class="gcal-more" onclick="showDayEvents('${dateStr}')">+${dayEvents.length-3} more</div>` : ''}
       </div>
     `;
   }
@@ -238,12 +241,12 @@ function renderCalendar() {
         <div class="panel">
           <div class="panel-header">
             <span class="panel-title">Upcoming</span>
-            <button class="panel-action" onclick="loadGoogleData()">Refresh</button>
+            <button class="panel-action" onclick="refreshCalendar()">↻ Refresh</button>
           </div>
           ${upcoming.length === 0
             ? `<div class="empty-state">No upcoming events</div>`
             : upcoming.map(e => `
-              <div class="upcoming-event">
+              <div class="upcoming-event" onclick="showEventDetail(event, '${e.id}')" style="cursor:pointer">
                 <div class="upcoming-dot" style="background:${e.color}"></div>
                 <div class="upcoming-body">
                   <div class="upcoming-title">${e.title}</div>
@@ -272,6 +275,81 @@ function shiftCalMonth(delta) {
   m += delta; if (m < 0) { m = 11; y--; } if (m > 11) { m = 0; y++; }
   calPageMonth = m; calPageYear = y;
   renderPage('calendar');
+}
+
+async function refreshCalendar() {
+  const btn = document.querySelector('.panel-action');
+  if (btn) btn.textContent = 'Loading...';
+  await fetchCalendarEvents();
+  renderPage('calendar');
+}
+
+function showEventDetail(e, eventId) {
+  e.stopPropagation();
+  const ev = googleState.calendarEvents.find(x => x.id === eventId);
+  if (!ev) return;
+  // remove any existing popover
+  document.querySelectorAll('.event-popover').forEach(el => el.remove());
+
+  const pop = document.createElement('div');
+  pop.className = 'event-popover';
+  pop.innerHTML = `
+    <div class="event-popover-header" style="border-left:3px solid ${ev.color}">
+      <span class="event-popover-title">${ev.title}</span>
+      <button class="event-popover-close" onclick="this.closest('.event-popover').remove()">×</button>
+    </div>
+    <div class="event-popover-body">
+      <div class="event-popover-row">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1" y="1.5" width="11" height="10.5" rx="1.5" stroke="currentColor" stroke-width="1"/><path d="M1 5h11M4 1v2M9 1v2" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg>
+        ${ev.allDay ? 'All day' : `${fmtEventTime(ev.start)} – ${fmtEventTime(ev.end)}`}
+      </div>
+      ${ev.location ? `
+        <div class="event-popover-row">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1C4.5 1 3 2.6 3 4.5c0 2.8 3.5 7 3.5 7S10 7.3 10 4.5C10 2.6 8.5 1 6.5 1z" stroke="currentColor" stroke-width="1"/><circle cx="6.5" cy="4.5" r="1.2" stroke="currentColor" stroke-width="1"/></svg>
+          ${ev.location}
+        </div>` : ''}
+      ${ev.description ? `<div class="event-popover-desc">${ev.description.slice(0,140)}${ev.description.length>140?'…':''}</div>` : ''}
+    </div>
+  `;
+
+  // position near click
+  const rect = e.target.closest('.gcal-event-pill, .upcoming-event')?.getBoundingClientRect();
+  pop.style.top  = (rect ? rect.bottom + window.scrollY + 4 : e.clientY + 4) + 'px';
+  pop.style.left = (rect ? Math.min(rect.left, window.innerWidth - 260) : e.clientX) + 'px';
+  document.body.appendChild(pop);
+
+  // close on outside click
+  setTimeout(() => document.addEventListener('click', () => pop.remove(), { once: true }), 10);
+}
+
+function showDayEvents(dateStr) {
+  const dayEvs = googleState.calendarEvents.filter(e => (e.start||'').startsWith(dateStr));
+  const d = new Date(dateStr + 'T12:00:00');
+  const label = d.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
+
+  document.querySelectorAll('.event-popover').forEach(el => el.remove());
+  const pop = document.createElement('div');
+  pop.className = 'event-popover';
+  pop.style.width = '240px';
+  pop.innerHTML = `
+    <div class="event-popover-header">
+      <span class="event-popover-title">${label}</span>
+      <button class="event-popover-close" onclick="this.closest('.event-popover').remove()">×</button>
+    </div>
+    <div class="event-popover-body">
+      ${dayEvs.map(ev => `
+        <div class="event-popover-row" style="border-left:2px solid ${ev.color};padding-left:8px;margin-bottom:6px">
+          <div style="font-size:12.5px;font-weight:500;color:var(--text)">${ev.title}</div>
+          <div style="font-size:11px;color:var(--text-3)">${ev.allDay ? 'All day' : fmtEventTime(ev.start)}</div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+  pop.style.top  = '50%';
+  pop.style.left = '50%';
+  pop.style.transform = 'translate(-50%, -50%)';
+  document.body.appendChild(pop);
+  setTimeout(() => document.addEventListener('click', () => pop.remove(), { once: true }), 10);
 }
 
 // ─── GOOGLE CONNECT SCREEN ────────────────────────────────────────────────────

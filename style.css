@@ -770,3 +770,38 @@ body.collapsed .collapse-btn { left: 45px; }
 .task-row[draggable="true"] { transition: opacity 0.15s; }
 .board-card[draggable="true"] { transition: opacity 0.15s; }
 .matrix-quad { transition: background 0.1s; }
+
+/* ── EVENT POPOVER ───────────────────────────────────────────────────────────── */
+.event-popover {
+  position: fixed; z-index: 500;
+  width: 220px; background: var(--bg);
+  border: 0.5px solid var(--border-2);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+  overflow: hidden;
+}
+.event-popover-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 12px; border-bottom: 0.5px solid var(--border);
+  padding-left: 14px;
+}
+.event-popover-title { font-size: 13px; font-weight: 500; color: var(--text); flex: 1; }
+.event-popover-close {
+  background: none; border: none; font-size: 18px;
+  color: var(--text-3); cursor: pointer; line-height: 1;
+  padding: 0; margin-left: 8px;
+}
+.event-popover-close:hover { color: var(--text); }
+.event-popover-body { padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; }
+.event-popover-row {
+  display: flex; align-items: flex-start; gap: 7px;
+  font-size: 12.5px; color: var(--text-2);
+}
+.event-popover-desc {
+  font-size: 12px; color: var(--text-3);
+  line-height: 1.5; margin-top: 4px;
+}
+.gcal-event-pill { cursor: pointer; }
+.gcal-event-pill:hover { background: var(--bg-3); }
+.gcal-more { cursor: pointer; font-size: 10px; color: var(--text-3); padding: 1px 4px; }
+.gcal-more:hover { color: var(--text); }

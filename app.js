@@ -210,8 +210,8 @@ function renderPlaceholder(name, icon) {
 
 const pages = {
   home:     { title: null,              render: renderHome },
-  tasks:    { title: 'Tasks',           render: () => renderPlaceholder('Task Manager', '☑') },
-  matrix:   { title: 'Priority Matrix', render: () => renderPlaceholder('Eisenhower Matrix', '⊞') },
+  tasks:    { title: 'Tasks',           render: renderTasks },
+  matrix:   { title: 'Priority Matrix', render: renderMatrix },
   focus:    { title: 'Focus',           render: () => renderPlaceholder('Pomodoro Focus', '◎') },
   journal:  { title: 'Journal',         render: () => renderPlaceholder('Journal', '◻') },
   calendar: { title: 'Calendar',        render: () => renderPlaceholder('Calendar', '▦') },
@@ -253,11 +253,12 @@ function openModal() { document.getElementById('modal-overlay').classList.add('o
 function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
 
 function saveTask() {
-  const name = document.getElementById('task-input').value.trim();
-  const quad = document.getElementById('task-quad').value;
-  const due  = document.getElementById('task-due').value.trim() || 'No due date';
+  const name     = document.getElementById('task-input').value.trim();
+  const quad     = document.getElementById('task-quad').value;
+  const due      = document.getElementById('task-due').value.trim() || 'No due date';
+  const assignee = document.getElementById('task-assignee')?.value || 'You';
   if (!name) return;
-  tasks.push({ id: Date.now(), name, done: false, quad, due, assignee: 'You' });
+  tasks.push({ id: Date.now(), name, done: false, quad, due, assignee });
   saveTasks();
   closeModal();
   document.getElementById('task-input').value = '';

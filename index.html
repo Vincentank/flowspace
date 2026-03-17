@@ -117,12 +117,18 @@
           <option value="q3">Urgent</option>
           <option value="q4">Later</option>
         </select>
-        <input class="modal-input" id="task-due" type="text" placeholder="Due (e.g. Today)" style="flex:1"/>
+        <select class="modal-select" id="task-assignee">
+          <option value="You">You</option>
+          <option value="Buddy">Buddy</option>
+          <option value="Both">Both</option>
+        </select>
       </div>
+      <input class="modal-input" id="task-due" type="text" placeholder="Due date (e.g. Today, Friday)"/>
       <button class="btn btn-primary" id="save-task-btn" style="width:100%;justify-content:center;">Save task</button>
     </div>
   </div>
 
+  <script src="tasks.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

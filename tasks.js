@@ -37,11 +37,23 @@ function renderTasks() {
 function renderListView(filtered) {
   if (!filtered.length) return `<div class="empty-state">No tasks here yet.</div>`;
   return `
-    <div class="panel" style="padding:0;overflow:hidden">
+    <div class="panel" style="padding:0;overflow:hidden" id="task-list-el">
       ${filtered.map((t,i) => `
-        <div class="task-row ${t.done?'task-row-done':''}" id="trow-${t.id}">
+        <div class="task-row ${t.done?'task-row-done':''}" id="trow-${t.id}"
+          draggable="true"
+          ondragstart="dragStart(event,${t.id})"
+          ondragover="dragOver(event)"
+          ondrop="dropTask(event,${t.id})"
+          ondragend="dragEnd(event)">
+          <div class="drag-handle" title="Drag to reorder">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <circle cx="4" cy="3" r="1" fill="currentColor"/><circle cx="8" cy="3" r="1" fill="currentColor"/>
+              <circle cx="4" cy="6" r="1" fill="currentColor"/><circle cx="8" cy="6" r="1" fill="currentColor"/>
+              <circle cx="4" cy="9" r="1" fill="currentColor"/><circle cx="8" cy="9" r="1" fill="currentColor"/>
+            </svg>
+          </div>
           <div class="task-check ${t.done?'done':''}" onclick="toggleTask(${t.id})"></div>
-          <div class="task-row-body">
+          <div class="task-row-body" onclick="openEditTask(${t.id})" style="cursor:pointer">
             <span class="task-row-name ${t.done?'done':''}">${t.name}</span>
             <div class="task-row-meta">
               <span class="tag tag-${t.quad}">${quadLabel[t.quad]}</span>
@@ -83,10 +95,15 @@ function renderBoardView(filtered) {
             </div>
             <div class="board-col-body">
               ${colTasks.length ? colTasks.map(t => `
-                <div class="board-card ${t.done?'board-card-done':''}">
+                <div class="board-card ${t.done?'board-card-done':''}"
+                  draggable="true"
+                  ondragstart="dragStart(event,${t.id})"
+                  ondragover="dragOver(event)"
+                  ondrop="dropTask(event,${t.id})"
+                  ondragend="dragEnd(event)">
                   <div class="board-card-top">
                     <div class="task-check ${t.done?'done':''}" style="margin-top:2px" onclick="toggleTask(${t.id})"></div>
-                    <span class="board-card-name ${t.done?'done':''}">${t.name}</span>
+                    <span class="board-card-name ${t.done?'done':''}" onclick="openEditTask(${t.id})" style="cursor:pointer">${t.name}</span>
                     <button class="task-delete" onclick="deleteTask(${t.id})">
                       <svg width="12" height="12" viewBox="0 0 13 13" fill="none"><path d="M2 2L11 11M11 2L2 11" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
                     </button>
@@ -136,7 +153,10 @@ function renderMatrix() {
           ${quads.map(q => {
             const qtasks = tasks.filter(t => t.quad === q.key && !t.done);
             return `
-              <div class="matrix-quad" style="--qc:${q.color};--qt:${q.tc}">
+              <div class="matrix-quad" style="--qc:${q.color};--qt:${q.tc}"
+            ondragover="quadDragOver(event,'${q.key}')"
+            ondragleave="quadDragLeave(event)"
+            ondrop="dropToQuad(event,'${q.key}')">
                 <div class="matrix-quad-header">
                   <span class="matrix-quad-icon">${q.icon}</span>
                   <div>
@@ -181,4 +201,96 @@ function openModalWithQuad(quad) {
     const sel = document.getElementById('task-quad');
     if (sel) sel.value = quad;
   }, 50);
+}
+
+// ─── DRAG & DROP ──────────────────────────────────────────────────────────────
+let dragId = null;
+
+function dragStart(e, id) {
+  dragId = id;
+  e.dataTransfer.effectAllowed = 'move';
+  setTimeout(() => {
+    const el = document.getElementById('trow-' + id) || e.target.closest('.board-card, .matrix-task');
+    if (el) el.style.opacity = '0.4';
+  }, 0);
+}
+
+function dragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  e.currentTarget.style.borderTop = '2px solid var(--accent)';
+}
+
+function dragEnd(e) {
+  dragId = null;
+  document.querySelectorAll('.task-row, .board-card, .matrix-task, .board-col-body, .matrix-quad')
+    .forEach(el => {
+      el.style.opacity = '';
+      el.style.borderTop = '';
+      el.style.background = '';
+    });
+}
+
+function dropTask(e, targetId) {
+  e.preventDefault();
+  e.currentTarget.style.borderTop = '';
+  if (!dragId || dragId === targetId) return;
+  const fromIdx = tasks.findIndex(t => t.id === dragId);
+  const toIdx   = tasks.findIndex(t => t.id === targetId);
+  if (fromIdx === -1 || toIdx === -1) return;
+  const [moved] = tasks.splice(fromIdx, 1);
+  tasks.splice(toIdx, 0, moved);
+  saveTasks();
+  renderPage(currentPage);
+}
+
+function dropToQuad(e, quad) {
+  e.preventDefault();
+  e.currentTarget.style.background = '';
+  if (!dragId) return;
+  const t = tasks.find(x => x.id === dragId);
+  if (t) { t.quad = quad; saveTasks(); renderPage(currentPage); }
+}
+
+function quadDragOver(e, quad) {
+  e.preventDefault();
+  e.currentTarget.style.background = 'var(--bg-2)';
+}
+
+function quadDragLeave(e) {
+  e.currentTarget.style.background = '';
+}
+
+// ─── EDIT TASK ─────────────────────────────────────────────────────────────────
+function openEditTask(id) {
+  const t = tasks.find(x => x.id === id);
+  if (!t) return;
+  // reuse the add modal, pre-fill it
+  document.getElementById('modal-overlay').classList.add('open');
+  document.getElementById('modal-title').textContent = 'Edit task';
+  document.getElementById('save-task-btn').textContent = 'Save changes';
+  document.getElementById('task-input').value = t.name;
+  document.getElementById('task-quad').value = t.quad;
+  document.getElementById('task-due').value = t.due !== 'No due date' ? t.due : '';
+  const assignEl = document.getElementById('task-assignee');
+  if (assignEl) assignEl.value = t.assignee;
+  // swap save handler to update instead of create
+  document.getElementById('save-task-btn').onclick = () => saveEditTask(id);
+  document.getElementById('task-input').focus();
+}
+
+function saveEditTask(id) {
+  const t = tasks.find(x => x.id === id);
+  if (!t) return;
+  t.name     = document.getElementById('task-input').value.trim() || t.name;
+  t.quad     = document.getElementById('task-quad').value;
+  t.due      = document.getElementById('task-due').value.trim() || 'No due date';
+  t.assignee = document.getElementById('task-assignee')?.value || t.assignee;
+  saveTasks();
+  closeModal();
+  // reset modal to add mode
+  document.getElementById('modal-title').textContent = 'New task';
+  document.getElementById('save-task-btn').textContent = 'Save task';
+  document.getElementById('save-task-btn').onclick = saveTask;
+  renderPage(currentPage);
 }

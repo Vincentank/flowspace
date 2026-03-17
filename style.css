@@ -735,3 +735,38 @@ body.collapsed .collapse-btn { left: 45px; }
   position: relative;
 }
 .photo-google-btn:hover { background: #f0f4ff; }
+
+/* ── TAG INPUT ───────────────────────────────────────────────────────────────── */
+.tag-input-wrap { display: flex; flex-direction: column; gap: 8px; }
+.tag-chips { display: flex; flex-wrap: wrap; gap: 6px; min-height: 10px; }
+.tag-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 10px; border-radius: 20px;
+  background: var(--bg-2); border: 0.5px solid var(--border-2);
+  font-size: 12.5px; color: var(--text);
+}
+.tag-chip-remove {
+  background: none; border: none; color: var(--text-3);
+  cursor: pointer; font-size: 14px; line-height: 1;
+  padding: 0; display: flex; align-items: center;
+}
+.tag-chip-remove:hover { color: var(--text); }
+.tag-input {
+  width: 100%; padding: 7px 11px; border-radius: var(--radius);
+  border: 0.5px solid var(--border); background: var(--bg-2);
+  font-family: var(--font); font-size: 13px; color: var(--text); outline: none;
+}
+.tag-input:focus { border-color: var(--border-2); }
+.tag-input::placeholder { color: var(--text-3); }
+
+/* ── DRAG & DROP ─────────────────────────────────────────────────────────────── */
+.drag-handle {
+  color: var(--text-3); cursor: grab; padding: 4px 6px 4px 0;
+  opacity: 0; transition: opacity 0.1s; flex-shrink: 0;
+  display: flex; align-items: center;
+}
+.task-row:hover .drag-handle { opacity: 1; }
+.drag-handle:active { cursor: grabbing; }
+.task-row[draggable="true"] { transition: opacity 0.15s; }
+.board-card[draggable="true"] { transition: opacity 0.15s; }
+.matrix-quad { transition: background 0.1s; }

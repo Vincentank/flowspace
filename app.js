@@ -255,7 +255,12 @@ function toggleSidebar() {
 
 // ─── MODAL ────────────────────────────────────────────────────────────────────
 function openModal() { document.getElementById('modal-overlay').classList.add('open'); document.getElementById('task-input').focus(); }
-function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+  document.getElementById('modal-title').textContent = 'New task';
+  const saveBtn = document.getElementById('save-task-btn');
+  if (saveBtn) { saveBtn.textContent = 'Save task'; saveBtn.onclick = saveTask; }
+}
 
 function saveTask() {
   const name     = document.getElementById('task-input').value.trim();

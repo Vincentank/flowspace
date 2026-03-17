@@ -165,14 +165,18 @@ function fmtEventTime(isoStr) {
 
 
 // ─── CALENDAR PAGE ────────────────────────────────────────────────────────────
+let calPageMonth, calPageYear;
+
 function renderCalendar() {
   if (!isGoogleConnected()) {
     return renderGoogleConnect('Calendar', 'See your Google Calendar events alongside your tasks.');
   }
 
   const today = new Date();
-  const month = journalState?.calMonth !== undefined ? journalState.calMonth : today.getMonth();
-  const year  = journalState?.calYear  !== undefined ? journalState.calYear  : today.getFullYear();
+  const month = calPageMonth !== undefined ? calPageMonth : today.getMonth();
+  const year  = calPageYear  !== undefined ? calPageYear  : today.getFullYear();
+  calPageMonth = month; calPageYear = year;
+
   const firstDay = new Date(year, month, 1);
   const lastDay  = new Date(year, month + 1, 0);
   const monthName = firstDay.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
@@ -261,7 +265,6 @@ function renderCalendar() {
   `;
 }
 
-let calPageMonth, calPageYear;
 function shiftCalMonth(delta) {
   const today = new Date();
   let m = calPageMonth !== undefined ? calPageMonth : today.getMonth();

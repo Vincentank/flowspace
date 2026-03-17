@@ -69,7 +69,7 @@ function togglePomo() {
         pomoRunning = false; clearInterval(pomoInterval);
         if (btn) btn.textContent = 'Start';
         pomoSession = pomoSession === 'Work' ? 'Break' : 'Work';
-        pomoDuration = pomoSession === 'Work' ? 25 * 60 : 5 * 60;
+        pomoDuration = pomoSession === 'Work' ? (focusState?.workMin||25)*60 : (focusState?.breakMin||5)*60;
         pomoRemaining = pomoDuration;
         updateRing();
       }
@@ -212,7 +212,7 @@ const pages = {
   home:     { title: null,              render: renderHome },
   tasks:    { title: 'Tasks',           render: renderTasks },
   matrix:   { title: 'Priority Matrix', render: renderMatrix },
-  focus:    { title: 'Focus',           render: () => renderPlaceholder('Pomodoro Focus', '◎') },
+  focus:    { title: 'Focus',           render: renderFocus },
   journal:  { title: 'Journal',         render: () => renderPlaceholder('Journal', '◻') },
   calendar: { title: 'Calendar',        render: () => renderPlaceholder('Calendar', '▦') },
   shared:   { title: 'Shared',          render: () => renderPlaceholder('Shared Space', '◈') },

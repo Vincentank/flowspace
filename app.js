@@ -213,7 +213,7 @@ const pages = {
   tasks:    { title: 'Tasks',           render: renderTasks },
   matrix:   { title: 'Priority Matrix', render: renderMatrix },
   focus:    { title: 'Focus',           render: renderFocus },
-  journal:  { title: 'Journal',         render: () => renderPlaceholder('Journal', '◻') },
+  journal:  { title: 'Journal',         render: renderJournal },
   calendar: { title: 'Calendar',        render: () => renderPlaceholder('Calendar', '▦') },
   shared:   { title: 'Shared',          render: () => renderPlaceholder('Shared Space', '◈') },
 };

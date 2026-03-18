@@ -805,3 +805,35 @@ body.collapsed .collapse-btn { left: 45px; }
 .gcal-event-pill:hover { background: var(--bg-3); }
 .gcal-more { cursor: pointer; font-size: 10px; color: var(--text-3); padding: 1px 4px; }
 .gcal-more:hover { color: var(--text); }
+
+/* ── AUTH SCREEN ─────────────────────────────────────────────────────────────── */
+.auth-wrap {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 70vh; padding: 24px;
+}
+.auth-card {
+  background: var(--bg); border: 0.5px solid var(--border);
+  border-radius: var(--radius-lg); padding: 32px;
+  width: 100%; max-width: 380px;
+}
+.auth-logo {
+  display: flex; align-items: center; justify-content: center;
+  gap: 12px; margin-bottom: 8px;
+}
+.auth-tab {
+  flex: 1; padding: 6px; border-radius: 6px; border: none;
+  font-family: var(--font); font-size: 13px; cursor: pointer;
+  color: var(--text-2); background: none; transition: background 0.1s, color 0.1s;
+}
+.auth-tab.active { background: var(--bg); color: var(--text); font-weight: 500; }
+
+/* ── TOAST ───────────────────────────────────────────────────────────────────── */
+.fs-toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(12px);
+  background: var(--accent); color: var(--accent-text);
+  padding: 10px 20px; border-radius: 20px;
+  font-size: 13px; font-family: var(--font);
+  opacity: 0; transition: opacity 0.2s, transform 0.2s;
+  pointer-events: none; z-index: 999; white-space: nowrap;
+}
+.fs-toast-show { opacity: 1; transform: translateX(-50%) translateY(0); }

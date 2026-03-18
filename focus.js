@@ -38,14 +38,16 @@ function checkStreak() {
 function completeSession(type) {
   if (type === 'work') {
     checkStreak();
-    focusState.sessions.unshift({
-      goal: focusState.currentGoal || 'Focus session',
+    const session = {
+      goal:     focusState.currentGoal || 'Focus session',
       duration: focusState.workMin,
-      date: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-      day: new Date().toDateString(),
-    });
+      date:     new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+      day:      new Date().toDateString(),
+    };
+    focusState.sessions.unshift(session);
     if (focusState.sessions.length > 20) focusState.sessions.pop();
     saveSessions();
+    if (isSignedIn()) saveSessionToDB(session);
   }
   renderPage('focus');
 }

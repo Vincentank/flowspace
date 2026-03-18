@@ -286,6 +286,7 @@ function saveEntryNow() {
     if (el) entry.sections[s.key] = el.value;
   });
   saveJournal();
+  if (isSignedIn()) saveJournalEntryToDB(dateStr);
 }
 
 function setMood(dateStr, val) {

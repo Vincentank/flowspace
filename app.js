@@ -33,6 +33,7 @@ let pomoSession = "Work";
 
 function saveTasks() {
   localStorage.setItem('fs_tasks', JSON.stringify(tasks));
+  if (isSignedIn()) syncTasksToDB();
 }
 
 // ─── UTILS ────────────────────────────────────────────────────────────────────
@@ -226,9 +227,27 @@ function renderPage(name) {
   const page = pages[name];
   const content = document.getElementById('page-content');
   const title   = document.getElementById('topbar-title');
+
+  // show auth screen if not signed in (except home still works offline)
+  if (!isSignedIn() && name !== 'home') {
+    if (content) content.innerHTML = renderAuthScreen();
+    if (title) title.textContent = 'Sign in';
+    return;
+  }
+
   if (content) content.innerHTML = page.render();
   if (title) title.textContent = page.title || getGreeting();
   if (name === 'home') updateRing();
+
+  // update sidebar user info
+  updateSidebarUser();
+}
+
+function updateSidebarUser() {
+  const nameEl = document.getElementById('sidebar-your-name');
+  if (nameEl && authState.profile?.name) nameEl.textContent = authState.profile.name;
+  const signoutEl = document.getElementById('sidebar-signout');
+  if (signoutEl) signoutEl.style.display = isSignedIn() ? '' : 'none';
 }
 
 function setPage(name) {
@@ -303,4 +322,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   renderPage('home');
   initGoogle();
+  initAuth().then(() => {
+    if (isSignedIn()) renderPage(currentPage);
+  });
 });

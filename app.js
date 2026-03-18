@@ -95,8 +95,53 @@ function toggleTask(id) {
   if (t) { t.done = !t.done; saveTasks(); renderPage(currentPage); }
 }
 
+// ─── LANDING SCREEN (signed out) ─────────────────────────────────────────────
+function renderLandingScreen() {
+  return `
+    <div class="landing-wrap">
+      <div class="landing-hero">
+        <div class="landing-logo">
+          <div class="logo-icon" style="width:52px;height:52px;border-radius:14px">
+            <svg width="28" height="28" viewBox="0 0 16 16" fill="none">
+              <circle cx="8" cy="8" r="3" fill="white"/>
+              <circle cx="3" cy="4" r="1.5" fill="white" opacity="0.6"/>
+              <circle cx="13" cy="4" r="1.5" fill="white" opacity="0.6"/>
+              <circle cx="3" cy="12" r="1.5" fill="white" opacity="0.4"/>
+              <circle cx="13" cy="12" r="1.5" fill="white" opacity="0.4"/>
+            </svg>
+          </div>
+        </div>
+        <h1 class="landing-title">FlowSpace</h1>
+        <p class="landing-sub">Productivity, focus and journaling — built for you and your buddy.</p>
+        <div class="landing-actions">
+          <button class="btn btn-primary landing-btn" onclick="setPage('tasks')">Sign in to get started</button>
+        </div>
+      </div>
+
+      <div class="landing-features">
+        ${[
+          { icon: '☑', title: 'Tasks & Matrix', desc: 'Eisenhower priority matrix with drag & drop' },
+          { icon: '◎', title: 'Pomodoro Focus', desc: 'Focus sessions with streak tracking' },
+          { icon: '◻', title: 'Daily Journal', desc: 'Mood, goals, health and more — every day' },
+          { icon: '▦', title: 'Google Calendar', desc: 'Your events synced right inside the app' },
+          { icon: '◈', title: 'Shared Space', desc: 'See your buddy\'s progress in real time' },
+          { icon: '⟳', title: 'Real-time sync', desc: 'Everything stays in sync between you both' },
+        ].map(f => `
+          <div class="landing-feature-card">
+            <div class="landing-feature-icon">${f.icon}</div>
+            <div class="landing-feature-title">${f.title}</div>
+            <div class="landing-feature-desc">${f.desc}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
 // ─── PAGES ────────────────────────────────────────────────────────────────────
 function renderHome() {
+  if (!isSignedIn()) return renderLandingScreen();
+
   const done = tasks.filter(t => t.done).length;
   const pct = Math.round(done / tasks.length * 100);
   const circ = 2 * Math.PI * 42;
@@ -228,7 +273,7 @@ function renderPage(name) {
   const content = document.getElementById('page-content');
   const title   = document.getElementById('topbar-title');
 
-  // show auth screen if not signed in (except home still works offline)
+  // show auth screen if not signed in (except home shows landing)
   if (!isSignedIn() && name !== 'home') {
     if (content) content.innerHTML = renderAuthScreen();
     if (title) title.textContent = 'Sign in';
@@ -236,7 +281,7 @@ function renderPage(name) {
   }
 
   if (content) content.innerHTML = page.render();
-  if (title) title.textContent = page.title || getGreeting();
+  if (title) title.textContent = (!isSignedIn() && name === 'home') ? 'FlowSpace' : (page.title || getGreeting());
   if (name === 'home') updateRing();
 
   // update sidebar user info

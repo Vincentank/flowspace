@@ -11,17 +11,6 @@ if (!tasks.length) {
   saveTasks();
 }
 
-const activity = [
-  { av: "BU", name: "Buddy", action: "completed 'Research competitors'", time: "12m ago" },
-  { av: "YO", name: "You", action: "added 3 tasks to Matrix", time: "1h ago" },
-  { av: "BU", name: "Buddy", action: "started a Focus session", time: "2h ago" },
-];
-
-const journals = [
-  { date: "Mon, Mar 17", snippet: "Made good progress on the proposal today. Feeling focused after the morning Pomodoro sessions..." },
-  { date: "Sun, Mar 16", snippet: "Reflected on last week's goals. Most tasks completed — need to prioritize documentation more..." },
-];
-
 const quadLabel = { q1: "Urgent & Important", q2: "Important", q3: "Urgent", q4: "Later" };
 
 // ─── POMODORO STATE ───────────────────────────────────────────────────────────
@@ -142,35 +131,57 @@ function renderLandingScreen() {
 function renderHome() {
   if (!isSignedIn()) return renderLandingScreen();
 
-  const done = tasks.filter(t => t.done).length;
-  const pct = Math.round(done / tasks.length * 100);
-  const circ = 2 * Math.PI * 42;
-  const offset = circ * (1 - pomoRemaining / pomoDuration);
+  const done         = tasks.filter(t => t.done).length;
+  const total        = tasks.length;
+  const pct          = total ? Math.round(done / total * 100) : 0;
+  const circ         = 2 * Math.PI * 42;
+  const offset       = circ * (1 - pomoRemaining / pomoDuration);
+  const myName       = authState.profile?.name || 'You';
+
+  // real focus stats
+  const today        = new Date().toDateString();
+  const todaySess    = focusState.sessions.filter(s => s.day === today);
+  const todayMins    = todaySess.reduce((a, s) => a + (s.duration || 0), 0);
+
+  // real journal streak
+  const journalStreak = calcJournalStreak();
+
+  // real recent journal entries
+  const recentJournals = Object.keys(journalState.entries)
+    .filter(hasContent).sort((a,b) => b.localeCompare(a)).slice(0,2);
+
+  // real activity from focus sessions (all users)
+  const recentActivity = focusState.sessions.slice(0, 3).map(s => ({
+    name:   s.userName || myName,
+    action: `completed a ${s.duration}min focus session — "${s.goal}"`,
+    time:   s.date,
+    isMe:   s.userId === authState.user?.id,
+  }));
 
   return `
-    <p class="greeting">${getGreeting()}</p>
-    <p class="subgreeting">${new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' })} · ${done} of ${tasks.length} tasks done</p>
+    <p class="greeting">${getGreeting()}, ${myName.split(' ')[0]}</p>
+    <p class="subgreeting">${new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' })} · ${done} of ${total} tasks done</p>
 
     <div class="stat-grid">
       <div class="stat-card">
         <div class="stat-label">Tasks today</div>
-        <div class="stat-value">${done}/${tasks.length}</div>
+        <div class="stat-value">${done}/${total}</div>
         <div class="progress-wrap"><div class="progress-bar" style="width:${pct}%"></div></div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">Focus sessions</div>
-        <div class="stat-value">3</div>
-        <div class="stat-sub">75 min today</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Buddy's tasks</div>
-        <div class="stat-value">2/5</div>
-        <div class="stat-sub">On track</div>
+        <div class="stat-label">Focus today</div>
+        <div class="stat-value">${todaySess.length}</div>
+        <div class="stat-sub">${todayMins} min total</div>
       </div>
       <div class="stat-card">
         <div class="stat-label">Journal streak</div>
-        <div class="stat-value">6d</div>
-        <div class="stat-sub">Keep it up</div>
+        <div class="stat-value">${journalStreak}d</div>
+        <div class="stat-sub">${journalStreak > 0 ? 'Keep it up!' : 'Start today'}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Pending tasks</div>
+        <div class="stat-value">${tasks.filter(t=>!t.done && t.quad==='q1').length}</div>
+        <div class="stat-sub">Urgent & important</div>
       </div>
     </div>
 
@@ -180,15 +191,15 @@ function renderHome() {
           <span class="panel-title">Today's tasks</span>
           <button class="panel-action" onclick="setPage('tasks')">See all →</button>
         </div>
-        ${tasks.slice(0, 4).map(t => `
+        ${tasks.filter(t=>!t.done).slice(0,4).map(t => `
           <div class="task-item">
-            <div class="task-check ${t.done ? 'done' : ''}" onclick="toggleTask(${t.id})"></div>
+            <div class="task-check ${t.done?'done':''}" onclick="toggleTask(${t.id})"></div>
             <div class="task-body">
-              <div class="task-name ${t.done ? 'done' : ''}">${t.name}<span class="tag tag-${t.quad}">${quadLabel[t.quad]}</span></div>
+              <div class="task-name ${t.done?'done':''}">${t.name}<span class="tag tag-${t.quad}">${quadLabel[t.quad]}</span></div>
               <div class="task-meta">${t.due} · ${t.assignee}</div>
             </div>
           </div>
-        `).join('')}
+        `).join('') || `<div class="empty-state" style="padding:16px 0">All caught up! 🎉</div>`}
       </div>
 
       <div class="panel">
@@ -204,7 +215,7 @@ function renderHome() {
           </svg>
           <div class="ring-time" id="ring-time-label">${fmtTime(pomoRemaining)}</div>
         </div>
-        <div class="ring-label">25 min work · 5 min break</div>
+        <div class="ring-label">${focusState.workMin}min work · ${focusState.breakMin}min break</div>
         <div class="pomo-btns">
           <button class="btn" onclick="resetPomo()">Reset</button>
           <button class="btn btn-primary" id="pomo-run-btn" onclick="togglePomo()">${pomoRunning ? 'Pause' : 'Start'}</button>
@@ -216,15 +227,14 @@ function renderHome() {
       <div class="panel">
         <div class="panel-header">
           <span class="panel-title">Activity feed</span>
-          <button class="panel-action" onclick="setPage('shared')">Shared board →</button>
         </div>
-        ${activity.map(a => `
+        ${recentActivity.length ? recentActivity.map(a => `
           <div class="activity-item">
-            <div class="avatar ${a.av === 'YO' ? 'av-you' : 'av-buddy'}">${a.av}</div>
+            <div class="avatar ${a.isMe ? 'av-you' : 'av-buddy'}">${a.name.slice(0,2).toUpperCase()}</div>
             <div class="activity-text"><strong style="font-weight:500">${a.name}</strong> ${a.action}</div>
             <div class="activity-time">${a.time}</div>
           </div>
-        `).join('')}
+        `).join('') : `<div class="empty-state" style="padding:16px 0">No activity yet — start a focus session!</div>`}
       </div>
 
       <div class="panel">
@@ -232,12 +242,17 @@ function renderHome() {
           <span class="panel-title">Recent journal</span>
           <button class="panel-action" onclick="setPage('journal')">All entries →</button>
         </div>
-        ${journals.map(j => `
-          <div class="journal-card">
-            <div class="journal-date">${j.date}</div>
-            <div class="journal-snippet">${j.snippet}</div>
-          </div>
-        `).join('')}
+        ${recentJournals.length ? recentJournals.map(dateStr => {
+          const e = journalState.entries[dateStr];
+          const preview = Object.values(e.sections||{}).find(v=>v?.trim()) || '';
+          const d = new Date(dateStr+'T12:00:00');
+          return `
+            <div class="journal-card" onclick="setPage('journal')">
+              <div class="journal-date">${d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})}</div>
+              <div class="journal-snippet">${preview.slice(0,100)}${preview.length>100?'…':''}</div>
+            </div>
+          `;
+        }).join('') : `<div class="empty-state" style="padding:16px 0">No journal entries yet.</div>`}
       </div>
     </div>
 
@@ -289,10 +304,34 @@ function renderPage(name) {
 }
 
 function updateSidebarUser() {
-  const nameEl = document.getElementById('sidebar-your-name');
-  if (nameEl && authState.profile?.name) nameEl.textContent = authState.profile.name;
-  const signoutEl = document.getElementById('sidebar-signout');
-  if (signoutEl) signoutEl.style.display = isSignedIn() ? '' : 'none';
+  const authFooter  = document.getElementById('sidebar-footer-auth');
+  const guestFooter = document.getElementById('sidebar-footer-guest');
+  if (!authFooter || !guestFooter) return;
+
+  if (isSignedIn()) {
+    authFooter.style.display  = '';
+    guestFooter.style.display = 'none';
+    // set your name + initials
+    const name = authState.profile?.name || 'You';
+    const nameEl = document.getElementById('sidebar-your-name');
+    const avatarEl = document.getElementById('sidebar-your-avatar');
+    if (nameEl) nameEl.textContent = name;
+    if (avatarEl) avatarEl.textContent = name.slice(0,2).toUpperCase();
+    // load buddy
+    loadBuddyProfiles().then(buddies => {
+      const buddyNameEl = document.getElementById('sidebar-buddy-name');
+      const buddyRow    = document.getElementById('sidebar-buddy-row');
+      if (buddies.length && buddyNameEl) {
+        buddyNameEl.textContent = buddies[0].name || 'Buddy';
+        if (buddyRow) buddyRow.style.display = '';
+      } else if (buddyRow) {
+        buddyRow.style.display = 'none';
+      }
+    });
+  } else {
+    authFooter.style.display  = 'none';
+    guestFooter.style.display = '';
+  }
 }
 
 function setPage(name) {
@@ -366,8 +405,9 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   renderPage('home');
+  updateSidebarUser();
   initGoogle();
   initAuth().then(() => {
-    if (isSignedIn()) renderPage(currentPage);
+    if (isSignedIn()) { renderPage(currentPage); updateSidebarUser(); }
   });
 });

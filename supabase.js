@@ -61,13 +61,26 @@ async function initAuth() {
 }
 
 // ─── PROFILE ──────────────────────────────────────────────────────────────────
+function cleanName(raw) {
+  // if it looks like an email prefix (contains numbers or no spaces), capitalize first letter only
+  if (!raw) return 'You';
+  const trimmed = raw.split('@')[0]; // strip @domain if full email slipped in
+  // if it's something like "vincent393752621", just use "Vincent"
+  const letters = trimmed.replace(/[^a-zA-Z]/g, '');
+  if (letters.length < trimmed.length * 0.7) {
+    // mostly numbers/symbols — just capitalize letters part
+    return letters.charAt(0).toUpperCase() + letters.slice(1).toLowerCase();
+  }
+  return trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
+}
+
 async function loadProfile(userId) {
   const { data } = await sb.from('profiles').select('*').eq('id', userId).single();
   if (data) {
     authState.profile = data;
   } else {
-    // create profile on first sign in
-    const name = authState.user.email?.split('@')[0] || 'User';
+    const rawName = authState.user.email?.split('@')[0] || 'User';
+    const name = cleanName(rawName);
     const { data: newProfile } = await sb.from('profiles')
       .insert({ id: userId, name })
       .select().single();
@@ -78,7 +91,17 @@ async function loadProfile(userId) {
 async function updateProfileName(name) {
   if (!authState.user) return;
   await sb.from('profiles').update({ name }).eq('id', authState.user.id);
-  authState.profile.name = name;
+  if (authState.profile) authState.profile.name = name;
+  updateSidebarUser();
+  renderPage(currentPage);
+}
+
+function promptRename() {
+  const current = authState.profile?.name || '';
+  const newName = window.prompt('Enter your name:', current);
+  if (newName && newName.trim() && newName.trim() !== current) {
+    updateProfileName(newName.trim());
+  }
 }
 
 // ─── SIGN IN / OUT ────────────────────────────────────────────────────────────

@@ -136,7 +136,7 @@ function renderHome() {
   const pct          = total ? Math.round(done / total * 100) : 0;
   const circ         = 2 * Math.PI * 42;
   const offset       = circ * (1 - pomoRemaining / pomoDuration);
-  const myName       = authState.profile?.name || 'You';
+  const myName = cleanName(authState.profile?.name || authState.user?.email?.split('@')[0] || 'You');
 
   // real focus stats
   const today        = new Date().toDateString();
@@ -312,10 +312,15 @@ function updateSidebarUser() {
     authFooter.style.display  = '';
     guestFooter.style.display = 'none';
     // set your name + initials
-    const name = authState.profile?.name || 'You';
+    const name = cleanName(authState.profile?.name || authState.user?.email?.split('@')[0] || 'You');
     const nameEl = document.getElementById('sidebar-your-name');
     const avatarEl = document.getElementById('sidebar-your-avatar');
-    if (nameEl) nameEl.textContent = name;
+    if (nameEl) {
+      nameEl.textContent = name;
+      nameEl.title = 'Click to change name';
+      nameEl.style.cursor = 'pointer';
+      nameEl.onclick = promptRename;
+    }
     if (avatarEl) avatarEl.textContent = name.slice(0,2).toUpperCase();
     // load buddy
     loadBuddyProfiles().then(buddies => {

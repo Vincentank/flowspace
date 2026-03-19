@@ -45,17 +45,22 @@ async function initAuth() {
   // listen for auth changes
   client.auth.onAuthStateChange(async (event, session) => {
     if (event === 'SIGNED_IN' && session?.user) {
+      // clear any previous user's local data before loading new user
+      clearLocalUserData();
       authState.user = session.user;
       await loadProfile(session.user.id);
       await syncAllFromDB();
       subscribeRealtime();
+      updateSidebarUser();
       renderPage(currentPage);
     }
     if (event === 'SIGNED_OUT') {
+      clearLocalUserData();
       authState.user    = null;
       authState.profile = null;
       unsubscribeRealtime();
-      renderPage(currentPage);
+      updateSidebarUser();
+      renderPage('home');
     }
   });
 }
@@ -123,6 +128,27 @@ async function signUpWithEmail(email, password, name) {
 async function signOut() {
   const client = await initSupabase();
   await client.auth.signOut();
+}
+
+function clearLocalUserData() {
+  // clear all user-specific localStorage keys
+  localStorage.removeItem('fs_tasks');
+  localStorage.removeItem('fs_sessions');
+  localStorage.removeItem('fs_streak');
+  localStorage.removeItem('fs_last_date');
+  localStorage.removeItem('fs_journal');
+
+  // reset in-memory state
+  tasks = [];
+  focusState.sessions = [];
+  focusState.streak   = 0;
+  focusState.lastDate = '';
+  focusState.currentGoal = '';
+  journalState.entries = {};
+  journalState.view    = 'calendar';
+  journalState.openDate = null;
+
+  // keep google token — it's tied to the browser not the user
 }
 
 // ─── SYNC: TASKS ──────────────────────────────────────────────────────────────

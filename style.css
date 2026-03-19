@@ -864,3 +864,90 @@ body.collapsed .collapse-btn { left: 45px; }
 .landing-feature-icon { font-size: 20px; }
 .landing-feature-title { font-size: 13px; font-weight: 500; color: var(--text); }
 .landing-feature-desc { font-size: 12px; color: var(--text-3); line-height: 1.5; }
+
+/* ── SHARED BOARD ────────────────────────────────────────────────────────────── */
+.shared-tabs {
+  display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 2px;
+}
+.shared-tab {
+  padding: 6px 14px; border-radius: var(--radius);
+  border: 0.5px solid var(--border); background: none;
+  font-family: var(--font); font-size: 13px; color: var(--text-2);
+  cursor: pointer; transition: background 0.1s, color 0.1s;
+}
+.shared-tab:hover { background: var(--bg-2); color: var(--text); }
+.shared-tab.active { background: var(--accent); color: var(--accent-text); border-color: transparent; }
+
+.shared-add-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+/* GOALS */
+.goal-card {
+  background: var(--bg-2); border-radius: var(--radius-lg);
+  padding: 14px 16px; border: 0.5px solid var(--border);
+}
+.goal-card-header { display: flex; align-items: flex-start; gap: 10px; }
+.goal-title { font-size: 13.5px; font-weight: 500; color: var(--text); }
+.goal-meta { font-size: 12px; color: var(--text-3); margin-top: 2px; }
+.goal-pct { font-size: 18px; font-weight: 500; font-family: var(--font-mono); color: var(--text); margin-left: auto; flex-shrink: 0; }
+.goal-btns { display: flex; gap: 6px; }
+.goal-btns .btn { padding: 5px 12px; font-size: 12px; }
+
+/* CHAT */
+.chat-messages {
+  max-height: 380px; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 10px;
+  padding: 4px 0 12px;
+}
+.chat-msg { display: flex; align-items: flex-end; gap: 8px; }
+.chat-msg-me { flex-direction: row-reverse; }
+.chat-avatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 500; color: #fff; flex-shrink: 0;
+}
+.chat-bubble-wrap { display: flex; flex-direction: column; gap: 2px; max-width: 70%; }
+.chat-msg-me .chat-bubble-wrap { align-items: flex-end; }
+.chat-name { font-size: 11px; color: var(--text-3); padding: 0 4px; }
+.chat-bubble {
+  background: var(--bg-2); border-radius: 12px 12px 12px 4px;
+  padding: 8px 12px; font-size: 13.5px; color: var(--text);
+  word-break: break-word; line-height: 1.5;
+}
+.chat-bubble-me { background: var(--accent); color: var(--accent-text); border-radius: 12px 12px 4px 12px; }
+.chat-time { font-size: 10.5px; color: var(--text-3); padding: 0 4px; }
+.chat-input-row {
+  display: flex; gap: 8px; padding-top: 12px;
+  border-top: 0.5px solid var(--border); margin-top: 4px;
+}
+.chat-input-row .modal-input { flex: 1; }
+
+/* LIVE FOCUS */
+.live-focus-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 0; border-bottom: 0.5px solid var(--border);
+}
+.live-focus-row:last-child { border-bottom: none; }
+.live-avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 500; color: #fff; flex-shrink: 0;
+}
+.live-status-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+/* LEADERBOARD */
+.leaderboard-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 12px; border-radius: var(--radius-lg);
+  background: var(--bg-2); border: 0.5px solid var(--border);
+}
+.leaderboard-me { border-color: var(--border-2); background: var(--bg); }
+.leaderboard-rank { font-size: 18px; width: 28px; text-align: center; flex-shrink: 0; }
+.leaderboard-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 500; color: #fff; flex-shrink: 0;
+}
+.leaderboard-score {
+  font-size: 14px; font-weight: 500; font-family: var(--font-mono);
+  color: var(--text); flex-shrink: 0;
+}

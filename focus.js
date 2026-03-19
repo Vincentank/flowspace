@@ -208,6 +208,7 @@ function renderFocus() {
 function toggleFocusPomo() {
   pomoRunning = !pomoRunning;
   if (pomoRunning) {
+    broadcastFocusStatus(true, focusState.currentGoal);
     pomoInterval = setInterval(() => {
       if (pomoRemaining > 0) {
         pomoRemaining--;
@@ -224,6 +225,7 @@ function toggleFocusPomo() {
     }, 1000);
   } else {
     clearInterval(pomoInterval);
+    broadcastFocusStatus(false);
   }
   updateFocusPlayBtn();
 }

@@ -278,7 +278,7 @@ const pages = {
   focus:    { title: 'Focus',           render: renderFocus },
   journal:  { title: 'Journal',         render: renderJournal },
   calendar: { title: 'Calendar',        render: renderCalendar },
-  shared:   { title: 'Shared',          render: () => renderPlaceholder('Shared Space', '◈') },
+  shared:   { title: 'Shared',          render: renderShared },
 };
 
 let currentPage = 'home';

@@ -51,6 +51,7 @@ async function initAuth() {
       await loadProfile(session.user.id);
       await syncAllFromDB();
       subscribeRealtime();
+      subscribeShared();
       updateSidebarUser();
       renderPage(currentPage);
     }
@@ -59,6 +60,7 @@ async function initAuth() {
       authState.user    = null;
       authState.profile = null;
       unsubscribeRealtime();
+      unsubscribeShared();
       updateSidebarUser();
       renderPage('home');
     }

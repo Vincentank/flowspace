@@ -295,12 +295,27 @@ function renderPage(name) {
     return;
   }
 
-  if (content) content.innerHTML = page.render();
   if (title) title.textContent = (!isSignedIn() && name === 'home') ? 'FlowSpace' : (page.title || getGreeting());
-  if (name === 'home') updateRing();
 
-  // update sidebar user info
-  updateSidebarUser();
+  // handle async render functions
+  const result = page.render();
+  if (result && typeof result.then === 'function') {
+    // show loading spinner while data fetches
+    if (content) content.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:center;height:40vh;gap:10px;color:var(--text-3)">
+        <div class="loading-spinner"></div>
+        Loading...
+      </div>`;
+    result.then(html => {
+      if (content) content.innerHTML = html;
+      if (name === 'home') updateRing();
+      updateSidebarUser();
+    });
+  } else {
+    if (content) content.innerHTML = result;
+    if (name === 'home') updateRing();
+    updateSidebarUser();
+  }
 }
 
 function updateSidebarUser() {

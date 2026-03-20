@@ -951,3 +951,12 @@ body.collapsed .collapse-btn { left: 45px; }
   font-size: 14px; font-weight: 500; font-family: var(--font-mono);
   color: var(--text); flex-shrink: 0;
 }
+
+/* ── LOADING SPINNER ─────────────────────────────────────────────────────────── */
+.loading-spinner {
+  width: 18px; height: 18px; border-radius: 50%;
+  border: 2px solid var(--border-2);
+  border-top-color: var(--text-2);
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }

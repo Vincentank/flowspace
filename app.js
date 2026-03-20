@@ -1,15 +1,11 @@
 // ─── STATE ───────────────────────────────────────────────────────────────────
+// Clear old example tasks that were seeded before backend was added
+const _storedTasks = JSON.parse(localStorage.getItem('fs_tasks') || '[]');
+const _exampleIds = [1, 2, 3, 4, 5];
+const _hasOnlyExamples = _storedTasks.length && _storedTasks.every(t => _exampleIds.includes(t.id));
+if (_hasOnlyExamples) localStorage.removeItem('fs_tasks');
+
 let tasks = JSON.parse(localStorage.getItem('fs_tasks') || '[]');
-if (!tasks.length) {
-  tasks = [
-    { id: 1, name: "Finish project proposal", done: false, quad: "q1", due: "Today", assignee: "You" },
-    { id: 2, name: "Review buddy's PR", done: false, quad: "q2", due: "Tomorrow", assignee: "You" },
-    { id: 3, name: "Weekly check-in call", done: true, quad: "q1", due: "Today", assignee: "Both" },
-    { id: 4, name: "Update documentation", done: false, quad: "q3", due: "Friday", assignee: "Buddy" },
-    { id: 5, name: "Organize shared folder", done: false, quad: "q4", due: "Next week", assignee: "You" },
-  ];
-  saveTasks();
-}
 
 const quadLabel = { q1: "Urgent & Important", q2: "Important", q3: "Urgent", q4: "Later" };
 

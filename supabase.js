@@ -2,24 +2,17 @@
 const SUPABASE_URL = 'https://tojhthgimlwlxibskkbm.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_OlgdWZiMI5O7sHNa7BjG4A_uKW609xt';
 
-// Load Supabase SDK dynamically
+// sb is initialized immediately since SDK loads via script tag in index.html
 let sb = null;
 
-async function initSupabase() {
+function initSupabase() {
   if (sb) return sb;
-  await loadScript('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js');
   sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   return sb;
 }
 
-function loadScript(src) {
-  return new Promise((resolve, reject) => {
-    if (document.querySelector(`script[src="${src}"]`)) { resolve(); return; }
-    const s = document.createElement('script');
-    s.src = src; s.onload = resolve; s.onerror = reject;
-    document.head.appendChild(s);
-  });
-}
+// Initialize immediately
+initSupabase();
 
 // ─── AUTH STATE ───────────────────────────────────────────────────────────────
 const authState = {
@@ -30,7 +23,7 @@ const authState = {
 };
 
 async function initAuth() {
-  const client = await initSupabase();
+  const client = initSupabase();
 
   // check existing session
   const { data: { session } } = await client.auth.getSession();
@@ -113,13 +106,13 @@ function promptRename() {
 
 // ─── SIGN IN / OUT ────────────────────────────────────────────────────────────
 async function signInWithEmail(email, password) {
-  const client = await initSupabase();
+  const client = initSupabase();
   const { error } = await client.auth.signInWithPassword({ email, password });
   if (error) throw error;
 }
 
 async function signUpWithEmail(email, password, name) {
-  const client = await initSupabase();
+  const client = initSupabase();
   const { data, error } = await client.auth.signUp({ email, password });
   if (error) throw error;
   if (data.user) {
@@ -128,7 +121,7 @@ async function signUpWithEmail(email, password, name) {
 }
 
 async function signOut() {
-  const client = await initSupabase();
+  const client = initSupabase();
   await client.auth.signOut();
 }
 
